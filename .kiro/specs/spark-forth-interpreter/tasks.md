@@ -46,7 +46,7 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - **Property 4: Stack Query Consistency**
     - **Validates: Requirements 1.3, 1.4, 1.5**
 
-- [ ] 3. Checkpoint — Verify Phase 1
+- [x] 3. Checkpoint — Verify Phase 1
   - Ensure `bounded_stacks.ads` and `bounded_stacks.adb` compile cleanly and all GNATprove VCs for Phase 1 are discharged. Ask the user if questions arise.
 
 - [ ] 4. Phase 2 — Forth VM (state record, dictionary, primitive executors)
