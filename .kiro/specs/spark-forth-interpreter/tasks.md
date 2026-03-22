@@ -121,7 +121,7 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - **Property 12: VM_Is_Valid Characterization**
     - **Validates: Requirements 6.1, 9.3**
 
-- [ ] 7. Checkpoint — Verify Phase 3
+- [x] 7. Checkpoint — Verify Phase 3
   - Ensure `forth_interpreter.ads` and `forth_interpreter.adb` compile cleanly and all GNATprove VCs for Phase 3 are discharged. Ask the user if questions arise.
 
 - [ ] 8. Main procedure and integration
