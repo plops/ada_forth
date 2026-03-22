@@ -49,8 +49,8 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
 - [x] 3. Checkpoint — Verify Phase 1
   - Ensure `bounded_stacks.ads` and `bounded_stacks.adb` compile cleanly and all GNATprove VCs for Phase 1 are discharged. Ask the user if questions arise.
 
-- [ ] 4. Phase 2 — Forth VM (state record, dictionary, primitive executors)
-  - [ ] 4.1 Create `forth_vm.ads` — Forth_VM package specification
+- [x] 4. Phase 2 — Forth VM (state record, dictionary, primitive executors)
+  - [x] 4.1 Create `forth_vm.ads` — Forth_VM package specification
     - Declare constants `Stack_Capacity`, `Max_Dict_Entries`, `Max_Word_Length`
     - Instantiate `Data_Stacks` from `Bounded_Stacks` with `Max_Depth => Stack_Capacity`
     - Define `Word_Name` subtype, `Primitive_Op` enumeration, `Dict_Entry` record, `Dict_Array` type
@@ -60,7 +60,7 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - Declare all seven primitive executors (`Execute_Add`, `Execute_Sub`, `Execute_Mul`, `Execute_Dup`, `Execute_Drop`, `Execute_Swap`, `Execute_Dot`) with appropriate preconditions (VM validity + minimum stack depth) and postcondition `VM_Is_Valid(VM)`
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3, 8.4, 9.1, 9.2, 9.3_
 
-  - [ ] 4.2 Create `forth_vm.adb` — Forth_VM package body
+  - [x] 4.2 Create `forth_vm.adb` — Forth_VM package body
     - Implement `Initialize`: set `Data_Stack` to `Empty_Stack`, populate `Dictionary` with 7 built-in primitives (+, -, *, DUP, DROP, SWAP, .), set `Dict_Size := 7`, `Halted := False`
     - Implement `Execute_Add`: pop two values, push sum
     - Implement `Execute_Sub`: pop two values, push difference
