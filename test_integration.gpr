@@ -1,0 +1,23 @@
+project Test_Integration is
+
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+   for Main use ("test_integration.adb");
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        ("-gnat2012",
+         "-gnata",
+         "-gnatwa",
+         "-gnatVa",
+         "-gnato13",
+         "-gnatf",
+         "-gnatwe");
+   end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use
+        ("-s");
+   end Builder;
+
+end Test_Integration;

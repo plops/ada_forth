@@ -124,21 +124,21 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
 - [x] 7. Checkpoint — Verify Phase 3
   - Ensure `forth_interpreter.ads` and `forth_interpreter.adb` compile cleanly and all GNATprove VCs for Phase 3 are discharged. Ask the user if questions arise.
 
-- [ ] 8. Main procedure and integration
-  - [ ] 8.1 Create `main.adb` — Main procedure
+- [x] 8. Main procedure and integration
+  - [x] 8.1 Create `main.adb` — Main procedure
     - Declare `Main` with `SPARK_Mode => Off` (uses Ada.Text_IO)
     - Initialize VM via `Forth_VM.Initialize`
     - Read a line of input into a `Line_Buffer`, call `Forth_Interpreter.Interpret_Line`, and print the result
     - Optionally loop for interactive REPL until EOF or halt
     - _Requirements: 5.1, 6.2, 11.1, 14.1, 14.2, 14.3, 14.4_
 
-  - [ ]* 8.2 Write integration tests for end-to-end Forth expressions
+  - [x] 8.2 Write integration tests for end-to-end Forth expressions
     - Test known expressions like `"3 4 + ."`, `"5 DUP * ."`, `"1 2 SWAP - ."`
     - Verify correct output and `OK` result
     - Test error cases: unknown word, stack underflow, stack overflow
     - _Requirements: 11.1, 12.1, 12.2, 12.3, 12.4_
 
-- [ ] 9. Final checkpoint — Full build and verification
+- [x] 9. Final checkpoint — Full build and verification
   - Ensure the entire project builds with `gprbuild -P forth_interpreter.gpr`, all GNATprove VCs are discharged at level 2, and the interpreter correctly executes sample Forth programs. Ask the user if questions arise.
 
 ## Notes
