@@ -13,7 +13,7 @@ is
       Length : Natural range 0 .. Max_Token_Length := 0;
    end record;
 
-   type Interpret_Result is (OK, Unknown_Word, Stack_Error, Halted);
+   type Interpret_Result is (OK, Unknown_Word, Stack_Error, Compile_Error, Halted);
 
    procedure Interpret_Line
      (VM   : in out Forth_VM.VM_State;

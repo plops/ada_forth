@@ -35,6 +35,8 @@ begin
             Ada.Text_IO.Put_Line ("Error: unknown word");
          when Forth_Interpreter.Stack_Error =>
             Ada.Text_IO.Put_Line ("Error: stack underflow/overflow");
+         when Forth_Interpreter.Compile_Error =>
+            Ada.Text_IO.Put_Line ("Error: compilation error");
          when Forth_Interpreter.Halted =>
             Ada.Text_IO.Put_Line ("VM halted");
             exit;
