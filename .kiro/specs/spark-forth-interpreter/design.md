@@ -576,16 +576,80 @@ Expected execution trace for `"3 4 + DUP * ."`:
 
 ## Correctness Properties
 
-The following properties are universally quantified over all valid inputs and states:
+*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-1. **Stack Overflow Absence**: ∀ S : Stack, V : Integer · `not Is_Full(S)` ⟹ `Push(S, V)` terminates without `Constraint_Error`
-2. **Stack Underflow Absence**: ∀ S : Stack · `not Is_Empty(S)` ⟹ `Pop(S, _)` terminates without `Constraint_Error`
-3. **Push-Pop Identity**: ∀ S : Stack, V : Integer · `not Is_Full(S)` ⟹ let S' = Push(S, V) in Pop(S') yields (S, V)
-4. **Size Monotonicity**: `Size(Push(S, V)) = Size(S) + 1` and `Size(Pop(S)) = Size(S) - 1`
-5. **Frame Preservation**: Push and Pop do not modify elements below the top
-6. **VM Validity Preservation**: ∀ VM : VM_State, Op : Primitive_Op · `VM_Is_Valid(VM) ∧ Has_Enough_Operands(VM, Op)` ⟹ `VM_Is_Valid(Dispatch(VM, Op))`
-7. **Interpreter Loop Invariant**: At every iteration boundary of `Interpret_Line`, `VM_Is_Valid(VM)` holds
-8. **No Dynamic Allocation**: The entire system uses only stack-allocated and statically-sized objects — verifiable by SPARK flow analysis (no access types)
+### Property 1: Push-Pop Round Trip
+
+*For any* non-full Stack S and *for any* Integer V, pushing V onto S and then popping from the resulting stack shall yield the original stack S and the value V.
+
+**Validates: Requirements 2.1, 2.2, 3.1, 3.2**
+
+### Property 2: Push Frame Preservation
+
+*For any* non-full Stack S, *for any* Integer V, and *for any* valid index I in 1..Size(S), Element_At(Push(S, V), I) equals Element_At(S, I) — pushing a new element does not modify any previously existing element.
+
+**Validates: Requirements 2.3**
+
+### Property 3: Pop Frame Preservation
+
+*For any* non-empty Stack S and *for any* valid index I in 1..Size(S)-1, Element_At(Pop(S), I) equals Element_At(S, I) — popping the top element does not modify any remaining element.
+
+**Validates: Requirements 3.3**
+
+### Property 4: Stack Query Consistency
+
+*For any* Stack S, Is_Empty(S) is equivalent to Size(S) = 0, and Is_Full(S) is equivalent to Size(S) = Max_Depth. Size(S) always equals the Top field of S.
+
+**Validates: Requirements 1.3, 1.4, 1.5**
+
+### Property 5: VM Validity Preservation Under Primitives
+
+*For any* valid VM_State and *for any* Primitive_Op where the Data_Stack has enough operands, dispatching that primitive shall produce a VM_State where VM_Is_Valid still holds.
+
+**Validates: Requirements 7.1, 7.2, 7.3, 8.1, 8.2, 8.3, 8.4**
+
+### Property 6: Arithmetic Primitive Correctness
+
+*For any* valid VM_State with at least 2 elements on the Data_Stack, Execute_Add shall replace the top two elements with their sum, Execute_Sub with their difference, and Execute_Mul with their product, each reducing stack size by exactly one.
+
+**Validates: Requirements 7.1, 7.2, 7.3**
+
+### Property 7: Swap Involution
+
+*For any* valid VM_State with at least 2 elements on the Data_Stack, executing Swap twice shall restore the stack to its original state.
+
+**Validates: Requirement 8.3**
+
+### Property 8: Dup Duplicates Top
+
+*For any* valid VM_State with a non-empty and non-full Data_Stack, after Execute_Dup the top two elements are equal and the stack size has increased by exactly one.
+
+**Validates: Requirement 8.1**
+
+### Property 9: Tokenizer Whitespace Normalization
+
+*For any* Line_Buffer containing whitespace-delimited tokens, the sequence of extracted tokens shall be identical regardless of the amount of contiguous whitespace between them.
+
+**Validates: Requirements 10.1, 10.3**
+
+### Property 10: Interpreter End-to-End Correctness
+
+*For any* valid VM_State and *for any* input line consisting entirely of valid dictionary words and integer literals with sufficient stack depth, Interpret_Line shall return OK and the final Data_Stack state shall match the sequential left-to-right application of those operations.
+
+**Validates: Requirements 11.1, 11.3, 12.4**
+
+### Property 11: Error Preservation of VM State
+
+*For any* valid VM_State and *for any* input line that triggers an error (Stack_Error or Unknown_Word), the VM_State after Interpret_Line shall be unchanged from the state at the point the error was detected.
+
+**Validates: Requirements 12.1, 12.3**
+
+### Property 12: VM_Is_Valid Characterization
+
+*For any* VM_State, VM_Is_Valid returns True if and only if Dict_Size is within 0..Max_Dict_Entries and every active dictionary entry (index 1..Dict_Size) has Length greater than zero.
+
+**Validates: Requirements 6.1, 9.3**
+**Validates: Requirements 6.1, 9.3**
 
 ## Error Handling
 
