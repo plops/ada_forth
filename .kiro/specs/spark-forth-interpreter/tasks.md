@@ -12,8 +12,8 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - Include `-gnata` for assertion checking and SPARK-related switches
     - _Requirements: 13.1, 14.4_
 
-- [ ] 2. Phase 1 — Bounded Stack (generic SPARK package)
-  - [ ] 2.1 Create `bounded_stacks.ads` — Bounded_Stacks generic package specification
+- [x] 2. Phase 1 — Bounded Stack (generic SPARK package)
+  - [x] 2.1 Create `bounded_stacks.ads` — Bounded_Stacks generic package specification
     - Declare the generic package with `Max_Depth : Positive` parameter and `SPARK_Mode => On`
     - Define the `Stack` private type with `Data_Array` and `Top : Depth_Range`
     - Declare `Is_Empty`, `Is_Full`, `Size`, `Peek` query functions
@@ -23,7 +23,7 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - Declare `Empty_Stack` constant
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3_
 
-  - [ ] 2.2 Create `bounded_stacks.adb` — Bounded_Stacks generic package body
+  - [x] 2.2 Create `bounded_stacks.adb` — Bounded_Stacks generic package body
     - Implement `Is_Empty`, `Is_Full`, `Size`, `Peek` as expression functions over `S.Top` and `S.Data`
     - Implement `Element_At` as `S.Data(I)` (ghost, erased at runtime)
     - Implement `Push`: increment `Top`, assign `S.Data(S.Top) := Value`

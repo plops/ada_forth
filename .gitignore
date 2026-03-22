@@ -1,0 +1,13 @@
+# GNAT build artifacts
+obj/
+lib/
+
+# ALI and object files
+*.ali
+*.o
+
+# GNATprove output
+gnatprove/
+
+# Executable
+main
