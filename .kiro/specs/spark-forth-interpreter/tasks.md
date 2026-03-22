@@ -55,21 +55,22 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - Instantiate `Data_Stacks` from `Bounded_Stacks` with `Max_Depth => Stack_Capacity`
     - Define `Word_Name` subtype, `Primitive_Op` enumeration, `Dict_Entry` record, `Dict_Array` type
     - Define `VM_State` record with `Data_Stack`, `Dictionary`, `Dict_Size`, `Halted` fields
-    - Declare `VM_Is_Valid` expression function checking `Dict_Size` range and active entry `Length > 0`
+    - Declare `Dict_Entries_Valid` helper expression function that unrolls the first 7 entries explicitly and falls back to quantification for entries 8+, to aid alt-ergo proof discharge
+    - Declare `VM_Is_Valid` expression function delegating to `Dict_Entries_Valid`
     - Declare `Initialize` with postcondition `VM_Is_Valid(VM) and Data_Stacks.Is_Empty(VM.Data_Stack)`
-    - Declare all seven primitive executors (`Execute_Add`, `Execute_Sub`, `Execute_Mul`, `Execute_Dup`, `Execute_Drop`, `Execute_Swap`, `Execute_Dot`) with appropriate preconditions (VM validity + minimum stack depth) and postcondition `VM_Is_Valid(VM)`
-    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3, 8.4, 9.1, 9.2, 9.3_
+    - Declare arithmetic executors (`Execute_Add`, `Execute_Sub`, `Execute_Mul`) with `Success : out Boolean` parameter for overflow-safe operation, preconditions (VM validity + minimum stack depth 2), and postcondition `VM_Is_Valid(VM)`
+    - Declare stack manipulation executors (`Execute_Dup`, `Execute_Drop`, `Execute_Swap`, `Execute_Dot`) with appropriate preconditions and postcondition `VM_Is_Valid(VM)`
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3, 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 9.1, 9.2, 9.3_
 
   - [x] 4.2 Create `forth_vm.adb` — Forth_VM package body
-    - Implement `Initialize`: set `Data_Stack` to `Empty_Stack`, populate `Dictionary` with 7 built-in primitives (+, -, *, DUP, DROP, SWAP, .), set `Dict_Size := 7`, `Halted := False`
-    - Implement `Execute_Add`: pop two values, push sum
-    - Implement `Execute_Sub`: pop two values, push difference
-    - Implement `Execute_Mul`: pop two values, push product
+    - Define `Default_Dict` constant aggregate with all 7 built-in primitives for prover-friendly initialization
+    - Implement `Initialize`: set `Data_Stack` to `Empty_Stack`, assign `Default_Dict` to `Dictionary`, set `Dict_Size := 7`, `Halted := False`
+    - Implement `Execute_Add`, `Execute_Sub`, `Execute_Mul` with overflow-safe `Long_Long_Integer` intermediate arithmetic: pop two values, compute in wide type, check `Integer` range, push result and set `Success := True` on success, or restore operands and set `Success := False` on overflow
     - Implement `Execute_Dup`: peek top, push copy
     - Implement `Execute_Drop`: pop and discard
     - Implement `Execute_Swap`: pop two, push in reversed order
-    - Implement `Execute_Dot`: pop top value for output (use a SPARK_Mode => Off wrapper for Ada.Text_IO)
-    - _Requirements: 6.2, 7.1, 7.2, 7.3, 8.1, 8.2, 8.3, 8.4, 9.1_
+    - Implement `Execute_Dot`: pop top value for output (use a SPARK_Mode => Off body for Ada.Text_IO)
+    - _Requirements: 6.2, 7.1, 7.2, 7.3, 7.5, 8.1, 8.2, 8.3, 8.4, 9.1_
 
   - [ ]* 4.3 Write property test for VM validity preservation under primitives
     - **Property 5: VM Validity Preservation Under Primitives**
@@ -87,7 +88,7 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - **Property 8: Dup Duplicates Top**
     - **Validates: Requirement 8.1**
 
-- [ ] 5. Checkpoint — Verify Phase 2
+- [-] 5. Checkpoint — Verify Phase 2
   - Ensure `forth_vm.ads` and `forth_vm.adb` compile cleanly and all GNATprove VCs for Phase 2 are discharged. Ask the user if questions arise.
 
 - [ ] 6. Phase 3 — Outer Interpreter (token reader, dispatch loop)

@@ -204,18 +204,18 @@ is
      with Post => VM_Is_Valid (VM)
                   and then Data_Stacks.Is_Empty (VM.Data_Stack);
 
-   --  Primitive word executors
-   procedure Execute_Add  (VM : in out VM_State)
+   --  Primitive word executors (arithmetic — overflow-safe)
+   procedure Execute_Add  (VM : in out VM_State; Success : out Boolean)
      with Pre  => VM_Is_Valid (VM)
                   and then Data_Stacks.Size (VM.Data_Stack) >= 2,
           Post => VM_Is_Valid (VM);
 
-   procedure Execute_Sub  (VM : in out VM_State)
+   procedure Execute_Sub  (VM : in out VM_State; Success : out Boolean)
      with Pre  => VM_Is_Valid (VM)
                   and then Data_Stacks.Size (VM.Data_Stack) >= 2,
           Post => VM_Is_Valid (VM);
 
-   procedure Execute_Mul  (VM : in out VM_State)
+   procedure Execute_Mul  (VM : in out VM_State; Success : out Boolean)
      with Pre  => VM_Is_Valid (VM)
                   and then Data_Stacks.Size (VM.Data_Stack) >= 2,
           Post => VM_Is_Valid (VM);
@@ -390,7 +390,7 @@ procedure Pop (S : in out Stack; Value : out Integer)
 ### Function 3: Execute_Add
 
 ```ada
-procedure Execute_Add (VM : in out VM_State)
+procedure Execute_Add (VM : in out VM_State; Success : out Boolean)
   with Pre  => VM_Is_Valid (VM)
                and then Data_Stacks.Size (VM.Data_Stack) >= 2,
        Post => VM_Is_Valid (VM);
@@ -402,19 +402,26 @@ procedure Execute_Add (VM : in out VM_State)
 
 **Postconditions:**
 - VM remains in a valid state
-- (Informally: top two elements are replaced by their sum; net stack depth decreases by 1)
+- Success = True when the result fits in Integer; Success = False on overflow (stack restored)
 
 **Implementation sketch:**
 ```ada
-procedure Execute_Add (VM : in out VM_State) is
+procedure Execute_Add (VM : in out VM_State; Success : out Boolean) is
    A, B : Integer;
+   R    : Long_Long_Integer;
 begin
    Data_Stacks.Pop (VM.Data_Stack, A);
    Data_Stacks.Pop (VM.Data_Stack, B);
-   --  Note: overflow on A + B is a separate concern;
-   --  for Phase 2 we may use saturating arithmetic or
-   --  add a precondition on value ranges.
-   Data_Stacks.Push (VM.Data_Stack, A + B);
+   R := Long_Long_Integer (A) + Long_Long_Integer (B);
+   if R in Long_Long_Integer (Integer'First) .. Long_Long_Integer (Integer'Last) then
+      Data_Stacks.Push (VM.Data_Stack, Integer (R));
+      Success := True;
+   else
+      --  Overflow: restore original stack state
+      Data_Stacks.Push (VM.Data_Stack, B);
+      Data_Stacks.Push (VM.Data_Stack, A);
+      Success := False;
+   end if;
 end Execute_Add;
 ```
 
@@ -674,8 +681,8 @@ Expected execution trace for `"3 4 + DUP * ."`:
 ### Error Scenario 4: Integer Arithmetic Overflow
 
 **Condition**: `A + B`, `A - B`, or `A * B` exceeds `Integer'Range`
-**Response**: Phase 2 design decision — options include saturating arithmetic, wrapping arithmetic, or adding value-range preconditions. The recommended approach is to use `Integer` range checks and return `Stack_Error` if overflow would occur, keeping the VM provably safe.
-**Recovery**: VM state unchanged if overflow is caught before mutation
+**Response**: The arithmetic executor detects overflow using `Long_Long_Integer` intermediate arithmetic, restores the original stack state, and returns `Success := False`. The outer interpreter maps this to `Stack_Error`.
+**Recovery**: VM state is unchanged (operands restored to stack); caller reports error
 
 ## Testing Strategy
 

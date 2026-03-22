@@ -30,25 +30,38 @@ is
       Halted     : Boolean := False;
    end record;
 
+   function Dict_Entries_Valid (D : Dict_Array; N : Natural) return Boolean is
+     (N = 0
+      or else (N >= 1 and then D (1).Length > 0
+               and then (N < 2 or else (D (2).Length > 0
+               and then (N < 3 or else (D (3).Length > 0
+               and then (N < 4 or else (D (4).Length > 0
+               and then (N < 5 or else (D (5).Length > 0
+               and then (N < 6 or else (D (6).Length > 0
+               and then (N < 7 or else (D (7).Length > 0
+               and then (N < 8
+                         or else (for all I in 8 .. N =>
+                                    D (I).Length > 0))))))))))))))))
+     with Pre => N <= Max_Dict_Entries;
+
    function VM_Is_Valid (VM : VM_State) return Boolean is
-     ((for all I in 1 .. VM.Dict_Size =>
-         VM.Dictionary (I).Length > 0));
+     (Dict_Entries_Valid (VM.Dictionary, VM.Dict_Size));
 
    procedure Initialize (VM : out VM_State)
      with Post => VM_Is_Valid (VM)
                   and then Data_Stacks.Is_Empty (VM.Data_Stack);
 
-   procedure Execute_Add (VM : in out VM_State)
+   procedure Execute_Add (VM : in out VM_State; Success : out Boolean)
      with Pre  => VM_Is_Valid (VM)
                   and then Data_Stacks.Size (VM.Data_Stack) >= 2,
           Post => VM_Is_Valid (VM);
 
-   procedure Execute_Sub (VM : in out VM_State)
+   procedure Execute_Sub (VM : in out VM_State; Success : out Boolean)
      with Pre  => VM_Is_Valid (VM)
                   and then Data_Stacks.Size (VM.Data_Stack) >= 2,
           Post => VM_Is_Valid (VM);
 
-   procedure Execute_Mul (VM : in out VM_State)
+   procedure Execute_Mul (VM : in out VM_State; Success : out Boolean)
      with Pre  => VM_Is_Valid (VM)
                   and then Data_Stacks.Size (VM.Data_Stack) >= 2,
           Post => VM_Is_Valid (VM);

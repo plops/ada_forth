@@ -91,14 +91,15 @@ This document specifies the requirements for a SPARK-verified minimal Forth inte
 
 ### Requirement 7: Primitive Word Executors — Arithmetic
 
-**User Story:** As a Forth user, I want arithmetic primitives (add, subtract, multiply) that pop two operands and push the result, so that I can perform integer calculations.
+**User Story:** As a Forth user, I want arithmetic primitives (add, subtract, multiply) that pop two operands and push the result, so that I can perform integer calculations safely without risking runtime overflow.
 
 #### Acceptance Criteria
 
-1. WHEN Execute_Add is called with a valid VM_State having at least 2 elements on the Data_Stack, THE Forth_VM SHALL pop the top two values, push their sum, and preserve VM validity
-2. WHEN Execute_Sub is called with a valid VM_State having at least 2 elements on the Data_Stack, THE Forth_VM SHALL pop the top two values, push their difference, and preserve VM validity
-3. WHEN Execute_Mul is called with a valid VM_State having at least 2 elements on the Data_Stack, THE Forth_VM SHALL pop the top two values, push their product, and preserve VM validity
+1. WHEN Execute_Add is called with a valid VM_State having at least 2 elements on the Data_Stack, THE Forth_VM SHALL pop the top two values, compute their sum, and if the result is within Integer range push it and set Success to True, otherwise restore the original stack state and set Success to False, preserving VM validity in both cases
+2. WHEN Execute_Sub is called with a valid VM_State having at least 2 elements on the Data_Stack, THE Forth_VM SHALL pop the top two values, compute their difference, and if the result is within Integer range push it and set Success to True, otherwise restore the original stack state and set Success to False, preserving VM validity in both cases
+3. WHEN Execute_Mul is called with a valid VM_State having at least 2 elements on the Data_Stack, THE Forth_VM SHALL pop the top two values, compute their product, and if the result is within Integer range push it and set Success to True, otherwise restore the original stack state and set Success to False, preserving VM validity in both cases
 4. THE Execute_Add, Execute_Sub, and Execute_Mul procedures SHALL each carry a precondition requiring VM_Is_Valid and Data_Stack Size of at least 2
+5. THE Execute_Add, Execute_Sub, and Execute_Mul procedures SHALL use Long_Long_Integer intermediate arithmetic to detect overflow before narrowing to Integer, guaranteeing absence of runtime errors (AoRTE)
 
 ### Requirement 8: Primitive Word Executors — Stack Manipulation
 
