@@ -275,6 +275,11 @@ is
    is
       Pos : Natural := 1;
       Tok : Token;
+
+      --  Compile-time control flow stack for IF/ELSE/THEN
+      Max_CF_Depth : constant := 16;
+      CF_Stack : array (1 .. Max_CF_Depth) of Natural := (others => 0);
+      CF_Top   : Natural range 0 .. Max_CF_Depth := 0;
    begin
       Res := OK;
 
@@ -284,7 +289,7 @@ is
 
       while Pos <= Len and then Res = OK loop
          pragma Loop_Invariant (Forth_VM.VM_Is_Valid (VM));
-         pragma Loop_Invariant (Pos in 1 .. Len);
+         pragma Loop_Invariant (Pos in 1 .. Len + 1);
          pragma Loop_Invariant (Res = OK);
 
          Skip_Spaces (Line, Len, Pos);
@@ -295,8 +300,15 @@ is
          if VM.Compiling then
             --  COMPILATION MODE
             if Token_Equals (Tok, ";") then
-               --  End of colon definition
-               if VM.Comp_Name_Len > 0 then
+               --  End of colon definition: CF stack must be empty
+               if CF_Top /= 0 then
+                  --  Unresolved control flow: roll back and fail
+                  if VM.Comp_Start <= Forth_VM.Max_Code_Size then
+                     VM.Code_Size := VM.Comp_Start;
+                  end if;
+                  VM.Compiling := False;
+                  Res := Compile_Error;
+               elsif VM.Comp_Name_Len > 0 then
                   declare
                      Fin_OK : Boolean;
                   begin
@@ -308,6 +320,112 @@ is
                else
                   Res := Compile_Error;
                end if;
+
+            elsif Token_Equals (Tok, "IF") then
+               --  Emit Branch_If_Zero with placeholder target (0)
+               if VM.Comp_Start <= VM.Code_Size then
+                  declare
+                     Emit_OK : Boolean;
+                  begin
+                     Forth_VM.Emit_Instruction
+                       (VM,
+                        (Kind    => Forth_VM.Inst_Branch_If_Zero,
+                         Op      => Forth_VM.Op_Noop,
+                         Operand => 0),
+                        Emit_OK);
+                     if Emit_OK then
+                        --  Push Code_Size (position of the branch) onto CF stack
+                        if CF_Top < Max_CF_Depth then
+                           CF_Top := CF_Top + 1;
+                           CF_Stack (CF_Top) := VM.Code_Size;
+                        else
+                           --  CF stack overflow: roll back
+                           if VM.Comp_Start <= Forth_VM.Max_Code_Size then
+                              VM.Code_Size := VM.Comp_Start;
+                           end if;
+                           VM.Compiling := False;
+                           Res := Compile_Error;
+                        end if;
+                     else
+                        --  Code space full: roll back
+                        if VM.Comp_Start <= Forth_VM.Max_Code_Size then
+                           VM.Code_Size := VM.Comp_Start;
+                        end if;
+                        VM.Compiling := False;
+                        Res := Compile_Error;
+                     end if;
+                  end;
+               else
+                  Res := Compile_Error;
+               end if;
+
+            elsif Token_Equals (Tok, "ELSE") then
+               --  Emit Inst_Jump with placeholder, patch IF's branch target
+               if VM.Comp_Start <= VM.Code_Size and then CF_Top >= 1 then
+                  declare
+                     Emit_OK  : Boolean;
+                     IF_Addr  : Natural;
+                  begin
+                     Forth_VM.Emit_Instruction
+                       (VM,
+                        (Kind    => Forth_VM.Inst_Jump,
+                         Op      => Forth_VM.Op_Noop,
+                         Operand => 0),
+                        Emit_OK);
+                     if Emit_OK then
+                        --  Patch the IF's Branch_If_Zero target to Code_Size + 1
+                        IF_Addr := CF_Stack (CF_Top);
+                        if IF_Addr >= 1
+                          and then IF_Addr <= Forth_VM.Max_Code_Size
+                        then
+                           VM.Code (IF_Addr).Operand := VM.Code_Size + 1;
+                        end if;
+                        --  Replace CF stack top with ELSE's Jump position
+                        CF_Stack (CF_Top) := VM.Code_Size;
+                     else
+                        --  Code space full: roll back
+                        if VM.Comp_Start <= Forth_VM.Max_Code_Size then
+                           VM.Code_Size := VM.Comp_Start;
+                        end if;
+                        VM.Compiling := False;
+                        Res := Compile_Error;
+                     end if;
+                  end;
+               else
+                  --  ELSE without IF or bad state: roll back
+                  if VM.Compiling then
+                     if VM.Comp_Start <= Forth_VM.Max_Code_Size then
+                        VM.Code_Size := VM.Comp_Start;
+                     end if;
+                     VM.Compiling := False;
+                  end if;
+                  Res := Compile_Error;
+               end if;
+
+            elsif Token_Equals (Tok, "THEN") then
+               --  Patch the most recent branch target to Code_Size + 1
+               if CF_Top >= 1 then
+                  declare
+                     Branch_Addr : constant Natural := CF_Stack (CF_Top);
+                  begin
+                     CF_Top := CF_Top - 1;
+                     if Branch_Addr >= 1
+                       and then Branch_Addr <= Forth_VM.Max_Code_Size
+                     then
+                        VM.Code (Branch_Addr).Operand := VM.Code_Size + 1;
+                     end if;
+                  end;
+               else
+                  --  THEN without IF: roll back
+                  if VM.Compiling then
+                     if VM.Comp_Start <= Forth_VM.Max_Code_Size then
+                        VM.Code_Size := VM.Comp_Start;
+                     end if;
+                     VM.Compiling := False;
+                  end if;
+                  Res := Compile_Error;
+               end if;
+
             else
                --  Compile the token (handles primitives, user-defined, variables, literals)
                if VM.Comp_Start <= VM.Code_Size then

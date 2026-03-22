@@ -155,8 +155,8 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
     - **Property 7: Comparison Operators Produce Forth Boolean**
     - **Validates: Requirements 12.1, 12.2, 12.3, 12.4**
 
-- [ ] 7. Phase 2 — IF/ELSE/THEN Compilation
-  - [~] 7.1 Implement IF/ELSE/THEN compilation in Interpret_Line
+- [x] 7. Phase 2 — IF/ELSE/THEN Compilation
+  - [x] 7.1 Implement IF/ELSE/THEN compilation in Interpret_Line
     - Add a local compile-time control flow stack (array + top index, not the VM return stack)
     - IF: emit Inst_Branch_If_Zero with placeholder (Operand = 0), push Code_Size onto CF stack
     - ELSE: emit Inst_Jump with placeholder, patch IF's branch target to Code_Size + 1, push Code_Size onto CF stack
@@ -165,7 +165,7 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
     - At ";": check CF stack is empty, if not return Compile_Error and roll back
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 17.5_
 
-  - [~] 7.2 Ensure Inst_Branch_If_Zero and Inst_Jump are handled in Execute_Word
+  - [x] 7.2 Ensure Inst_Branch_If_Zero and Inst_Jump are handled in Execute_Word
     - Verify the Inst_Branch_If_Zero and Inst_Jump cases implemented in task 2.3 work correctly with the compiled branch targets
     - Inst_Branch_If_Zero: pop TOS, if zero jump to Operand, else fall through (PC + 1)
     - Inst_Jump: unconditionally jump to Operand
@@ -176,13 +176,13 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
     - **Property 4: Branch Target Validity**
     - **Validates: Requirements 13.1, 13.2, 13.3, 13.4**
 
-- [ ] 8. Phase 2 — GNATprove Verification and Integration Tests
-  - [~] 8.1 Run GNATprove and resolve all verification conditions for Phase 2
+- [x] 8. Phase 2 — GNATprove Verification and Integration Tests
+  - [x] 8.1 Run GNATprove and resolve all verification conditions for Phase 2
     - Run: `gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo`
     - All VCs must be discharged including comparison operators and control flow compilation
     - _Requirements: 20.1, 20.2, 20.3_
 
-  - [~] 8.2 Add integration tests for control flow in test_integration.adb
+  - [x] 8.2 Add integration tests for control flow in test_integration.adb
     - Test `: ABS DUP 0 < IF -1 * THEN ; -5 ABS .` → prints 5
     - Test IF/ELSE/THEN: `: SIGN DUP 0 > IF DROP 1 ELSE DUP 0 < IF DROP -1 ELSE DROP 0 THEN THEN ;`
     - Test comparison operators: `5 3 > .` → prints -1, `3 5 > .` → prints 0

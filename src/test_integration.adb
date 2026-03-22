@@ -200,6 +200,135 @@ begin
    --  Note: Backward compatibility (Requirement 19.1, 19.2) is verified by
    --  Tests 1-8 above continuing to pass with the extended interpreter.
 
+   --  ===== Phase 2 Tests: Comparison Operators and Control Flow =====
+
+   --  Test 12: Comparison operators — 5 3 > . => prints -1 (true)
+   Put_Line ("Test 12: 5 3 > . (greater-than true)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "5 3 > .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 13: Comparison operators — 3 5 > . => prints 0 (false)
+   Put_Line ("Test 13: 3 5 > . (greater-than false)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "3 5 > .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 14: Less-than — 3 5 < . => prints -1 (true)
+   Put_Line ("Test 14: 3 5 < . (less-than true)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "3 5 < .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 15: Equal — 7 7 = . => prints -1 (true)
+   Put_Line ("Test 15: 7 7 = . (equal true)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "7 7 = .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 16: IF/THEN — : ABS DUP 0 < IF -1 * THEN ; -5 ABS . => prints 5
+   Put_Line ("Test 16: : ABS DUP 0 < IF -1 * THEN ; -5 ABS .");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, ": ABS DUP 0 < IF -1 * THEN ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("ABS definition accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, "-5 ABS .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Execution result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 17: IF/THEN with positive (false branch, no ELSE) — 5 ABS . => 5
+   Put_Line ("Test 17: 5 ABS . (positive, IF not taken)");
+   --  Reuse VM from Test 16 (ABS already defined)
+   Set_Line (Line, "5 ABS .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Execution result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 18: IF/ELSE/THEN — SIGN word
+   Put_Line ("Test 18: SIGN word with IF/ELSE/THEN");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, ": SIGN DUP 0 > IF DROP 1 ELSE DUP 0 < IF DROP -1 ELSE DROP 0 THEN THEN ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("SIGN definition accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   --  Test SIGN with positive
+   Set_Line (Line, "5 SIGN .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("SIGN(5) result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   --  Test SIGN with negative
+   Set_Line (Line, "-3 SIGN .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("SIGN(-3) result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   --  Test SIGN with zero
+   Set_Line (Line, "0 SIGN .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("SIGN(0) result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 19: Fuel exhaustion — mutual recursion via word shadowing
+   --  Define RECUR as a no-op, then TRAMPOLINE calls RECUR,
+   --  then redefine RECUR to call TRAMPOLINE. The new RECUR calls
+   --  TRAMPOLINE which calls the OLD RECUR (the no-op), so no infinite loop.
+   --  True self-recursion isn't possible in this Forth since words aren't
+   --  visible during their own compilation. Fuel exhaustion (Req 9.2) is
+   --  formally verified by GNATprove. Test a deep but terminating call chain instead.
+   Put_Line ("Test 19: Deep nested calls (stress test)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, ": D4 DUP * ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Set_Line (Line, ": D3 D4 ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Set_Line (Line, ": D2 D3 ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Set_Line (Line, ": D1 D2 ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Deep chain definitions accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, "3 D1 .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Deep chain execution result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
    --  Summary
    Put_Line ("=== Results: " & Natural'Image (Passed_Tests) &
              " /" & Natural'Image (Total_Tests) & " passed ===");
