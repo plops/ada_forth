@@ -1,0 +1,23 @@
+project Forth_Interpreter is
+
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+   for Main use ("main.adb");
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        ("-gnat2012",   --  Ada 2012 language standard
+         "-gnata",      --  Enable assertion checking (Pre/Post/Assert)
+         "-gnatwa",     --  Enable most warnings
+         "-gnatVa",     --  Enable validity checks
+         "-gnato13",    --  Overflow checking: eliminate for base, check for assertions
+         "-gnatf",      --  Full error output
+         "-gnatwe");    --  Treat warnings as errors
+   end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use
+        ("-s");  --  Recompile only when sources change
+   end Builder;
+
+end Forth_Interpreter;
