@@ -91,14 +91,14 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
 - [x] 5. Checkpoint — Verify Phase 2
   - Ensure `forth_vm.ads` and `forth_vm.adb` compile cleanly and all GNATprove VCs for Phase 2 are discharged. Ask the user if questions arise.
 
-- [ ] 6. Phase 3 — Outer Interpreter (token reader, dispatch loop)
-  - [ ] 6.1 Create `forth_interpreter.ads` — Forth_Interpreter package specification
+- [x] 6. Phase 3 — Outer Interpreter (token reader, dispatch loop)
+  - [x] 6.1 Create `forth_interpreter.ads` — Forth_Interpreter package specification
     - Declare constants `Max_Line_Length`, `Max_Token_Length`
     - Define `Line_Buffer` subtype, `Token` record, `Interpret_Result` enumeration
     - Declare `Interpret_Line` with precondition `VM_Is_Valid(VM) and Len <= Max_Line_Length` and postcondition `VM_Is_Valid(VM)`
     - _Requirements: 10.1, 10.2, 11.1, 11.4, 11.5, 12.4_
 
-  - [ ] 6.2 Create `forth_interpreter.adb` — Forth_Interpreter package body
+  - [x] 6.2 Create `forth_interpreter.adb` — Forth_Interpreter package body
     - Implement internal helpers: `Skip_Spaces`, `Read_Token`, `Lookup`, `Has_Enough_Operands`, `Try_Parse_Integer`, `Dispatch`
     - Implement `Interpret_Line` main loop with `pragma Loop_Invariant (Forth_VM.VM_Is_Valid (VM))` and `pragma Loop_Invariant (Pos in 1 .. Len + 1)`
     - Handle dictionary lookup → dispatch, integer literal → push, and unknown word → return `Unknown_Word`
