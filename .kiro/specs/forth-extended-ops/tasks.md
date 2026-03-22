@@ -189,7 +189,7 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
     - Test fuel exhaustion with self-recursive word: `: LOOP LOOP ; LOOP` → Stack_Error
     - _Requirements: 12.1, 12.2, 12.3, 13.1, 13.4, 13.5, 13.6, 13.7, 9.2_
 
-- [ ] 9. Checkpoint — Phase 2 Complete
+- [x] 9. Checkpoint — Phase 2 Complete
   - Ensure all GNATprove VCs pass with zero unproved, all integration tests pass. Ask the user if questions arise.
 
 - [ ] 10. Phase 3 — Variables
