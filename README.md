@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/plops/ada_forth)
+
 # SPARK-Verified Minimal Forth Interpreter
 
 A minimal Forth interpreter written in Ada 2012 / SPARK 2014 with **zero unproved verification conditions**. Every line of core logic is formally verified by GNATprove — guaranteeing absence of runtime errors, buffer overflows, integer overflows, and index-out-of-range across all possible inputs.
