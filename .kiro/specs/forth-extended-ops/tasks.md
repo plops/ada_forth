@@ -192,27 +192,27 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
 - [x] 9. Checkpoint — Phase 2 Complete
   - Ensure all GNATprove VCs pass with zero unproved, all integration tests pass. Ask the user if questions arise.
 
-- [ ] 10. Phase 3 — Variables
-  - [~] 10.1 Implement Execute_Store and Execute_Fetch in forth_vm.adb
+- [x] 10. Phase 3 — Variables
+  - [x] 10.1 Implement Execute_Store and Execute_Fetch in forth_vm.adb
     - Execute_Store: pop address (TOS) and value (NOS), if address in 0 .. Var_Count - 1 store value in Memory, else restore stack and Success := False
     - Execute_Fetch: pop address (TOS), if address in 0 .. Var_Count - 1 push Memory(address), else restore stack and Success := False
     - Both preserve VM_Is_Valid regardless of Success
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
 
-  - [~] 10.2 Implement Create_Variable in forth_vm.adb or forth_interpreter.adb
+  - [x] 10.2 Implement Create_Variable in forth_vm.adb or forth_interpreter.adb
     - Check Dict_Size < Max_Dict_Entries and Var_Count < Max_Variables
     - Create Variable_Entry with Var_Addr = Var_Count, initialize Memory(Var_Count) to 0
     - Increment Dict_Size and Var_Count
     - If either limit reached: OK := False, no modification
     - _Requirements: 14.1, 14.2_
 
-  - [~] 10.3 Add VARIABLE handling in Interpret_Line
+  - [x] 10.3 Add VARIABLE handling in Interpret_Line
     - When "VARIABLE" token is encountered in interpretation mode: read next token as name, call Create_Variable
     - If no name follows VARIABLE: return Compile_Error
     - If Create_Variable fails: return Compile_Error
     - _Requirements: 14.1, 14.2, 16.2_
 
-  - [~] 10.4 Ensure Inst_Var_Addr is handled in Execute_Word
+  - [x] 10.4 Ensure Inst_Var_Addr is handled in Execute_Word
     - Verify the Inst_Var_Addr case implemented in task 2.3 pushes the Operand (variable address) onto the Data_Stack
     - _Requirements: 4.7_
 
@@ -224,20 +224,20 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
     - **Property 6: Store-Fetch Round Trip**
     - **Validates: Requirements 15.1, 15.3**
 
-- [ ] 11. Phase 3 — GNATprove Verification and Integration Tests
-  - [~] 11.1 Run GNATprove and resolve all verification conditions for Phase 3
+- [x] 11. Phase 3 — GNATprove Verification and Integration Tests
+  - [x] 11.1 Run GNATprove and resolve all verification conditions for Phase 3
     - Run: `gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo`
     - All VCs must be discharged including variable operations and Create_Variable
     - _Requirements: 20.1, 20.2, 20.3, 20.4_
 
-  - [~] 11.2 Add integration tests for variables in test_integration.adb
+  - [x] 11.2 Add integration tests for variables in test_integration.adb
     - Test `VARIABLE X 42 X ! X @ .` → prints 42
     - Test `VARIABLE X X @ 1 + X !` (increment pattern)
     - Test invalid address: push out-of-range address, call `!` → Stack_Error
     - Test VARIABLE in colon definition context: `: SETX X ! ; VARIABLE X 99 SETX X @ .` → prints 99
     - _Requirements: 14.1, 15.1, 15.3, 15.4_
 
-- [ ] 12. Checkpoint — Phase 3 Complete
+- [x] 12. Checkpoint — Phase 3 Complete
   - Ensure all GNATprove VCs pass with zero unproved, all integration tests pass. Ask the user if questions arise.
 
 - [ ] 13. Final verification and backward compatibility

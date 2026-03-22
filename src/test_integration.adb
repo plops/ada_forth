@@ -329,6 +329,64 @@ begin
            Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
    New_Line;
 
+   --  ===== Phase 3 Tests: Variables =====
+
+   --  Test 20: VARIABLE X 42 X ! X @ . => prints 42, result OK, stack empty
+   Put_Line ("Test 20: VARIABLE X 42 X ! X @ .");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "VARIABLE X 42 X ! X @ .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 21: Increment pattern — declare X, fetch default (0), add 1, store back
+   --  Then verify X @ gives 1
+   Put_Line ("Test 21: VARIABLE X X @ 1 + X ! then X @ (increment pattern)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "VARIABLE X X @ 1 + X !", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Increment step result is OK",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, "X @", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Fetch step result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("X @ gives 1",
+           Forth_VM.Data_Stacks.Peek (VM.Data_Stack) = 1);
+   New_Line;
+
+   --  Test 22: Invalid address — push out-of-range address (999), call ! => Stack_Error
+   Put_Line ("Test 22: 999 42 SWAP ! (invalid variable address)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "42 999 !", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Result is Stack_Error",
+           Res = Forth_Interpreter.Stack_Error);
+   New_Line;
+
+   --  Test 23: VARIABLE in colon definition context
+   --  Define VARIABLE X, then : SETX X ! ;, then 99 SETX X @ . => prints 99
+   Put_Line ("Test 23: VARIABLE X : SETX X ! ; 99 SETX X @ .");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, "VARIABLE X", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("VARIABLE X accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, ": SETX X ! ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("SETX definition accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, "99 SETX X @ .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Execution result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
    --  Summary
    Put_Line ("=== Results: " & Natural'Image (Passed_Tests) &
              " /" & Natural'Image (Total_Tests) & " passed ===");
