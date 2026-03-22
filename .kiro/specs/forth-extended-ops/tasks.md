@@ -142,8 +142,8 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
 - [x] 5. Checkpoint — Phase 1 Complete
   - Ensure all GNATprove VCs pass with zero unproved, all integration tests pass. Ask the user if questions arise.
 
-- [ ] 6. Phase 2 — Comparison Operators
-  - [~] 6.1 Implement Execute_Greater, Execute_Less, Execute_Equal in forth_vm.adb
+- [x] 6. Phase 2 — Comparison Operators
+  - [x] 6.1 Implement Execute_Greater, Execute_Less, Execute_Equal in forth_vm.adb
     - Pop two values (A then B), push -1 if condition holds, 0 otherwise
     - Execute_Greater: push -1 if B > A, else 0
     - Execute_Less: push -1 if B < A, else 0
