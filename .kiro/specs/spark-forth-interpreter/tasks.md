@@ -88,7 +88,7 @@ Implement a minimal Forth interpreter in Ada 2012 / SPARK 2014 across three phas
     - **Property 8: Dup Duplicates Top**
     - **Validates: Requirement 8.1**
 
-- [-] 5. Checkpoint — Verify Phase 2
+- [x] 5. Checkpoint — Verify Phase 2
   - Ensure `forth_vm.ads` and `forth_vm.adb` compile cleanly and all GNATprove VCs for Phase 2 are discharged. Ask the user if questions arise.
 
 - [ ] 6. Phase 3 — Outer Interpreter (token reader, dispatch loop)
