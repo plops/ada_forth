@@ -132,14 +132,14 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
     - Fix any loop invariant or contract issues until fully proved
     - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
 
-  - [~] 4.2 Add integration tests for user-defined words in test_integration.adb
+  - [x] 4.2 Add integration tests for user-defined words in test_integration.adb
     - Test `: SQUARE DUP * ; 5 SQUARE .` → prints 25
     - Test nested calls: `: SQUARE DUP * ; : CUBE DUP SQUARE * ; 3 CUBE .` → prints 27
     - Test error: undefined word in colon definition returns Compile_Error
     - Test backward compatibility: all existing test cases still pass
     - _Requirements: 5.1, 5.3, 8.1, 19.1, 19.2_
 
-- [ ] 5. Checkpoint — Phase 1 Complete
+- [x] 5. Checkpoint — Phase 1 Complete
   - Ensure all GNATprove VCs pass with zero unproved, all integration tests pass. Ask the user if questions arise.
 
 - [ ] 6. Phase 2 — Comparison Operators

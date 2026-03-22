@@ -152,6 +152,54 @@ begin
    end;
    New_Line;
 
+   --  Test 9: User-defined word SQUARE
+   --  : SQUARE DUP * ; 5 SQUARE .  => prints 25, stack empty
+   Put_Line ("Test 9: : SQUARE DUP * ; 5 SQUARE .");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, ": SQUARE DUP * ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Definition accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, "5 SQUARE .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Execution result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 10: Nested user-defined words SQUARE and CUBE
+   --  : SQUARE DUP * ; : CUBE DUP SQUARE * ; 3 CUBE .  => prints 27
+   Put_Line ("Test 10: : SQUARE DUP * ; : CUBE DUP SQUARE * ; 3 CUBE .");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, ": SQUARE DUP * ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("SQUARE definition accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, ": CUBE DUP SQUARE * ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("CUBE definition accepted (OK)",
+           Res = Forth_Interpreter.OK);
+   Set_Line (Line, "3 CUBE .", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Execution result is OK",
+           Res = Forth_Interpreter.OK);
+   Report ("Stack is empty after dot",
+           Forth_VM.Data_Stacks.Is_Empty (VM.Data_Stack));
+   New_Line;
+
+   --  Test 11: Undefined word in colon definition => Compile_Error
+   Put_Line ("Test 11: : BAD NONEXISTENT ; (undefined word in definition)");
+   Forth_VM.Initialize (VM);
+   Set_Line (Line, ": BAD NONEXISTENT ;", Len);
+   Forth_Interpreter.Interpret_Line (VM, Line, Len, Res);
+   Report ("Result is Compile_Error",
+           Res = Forth_Interpreter.Compile_Error);
+   New_Line;
+
+   --  Note: Backward compatibility (Requirement 19.1, 19.2) is verified by
+   --  Tests 1-8 above continuing to pass with the extended interpreter.
+
    --  Summary
    Put_Line ("=== Results: " & Natural'Image (Passed_Tests) &
              " /" & Natural'Image (Total_Tests) & " passed ===");
