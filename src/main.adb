@@ -1,6 +1,8 @@
 with Ada.Text_IO;
+with Ada.Command_Line;
 with Forth_VM;
 with Forth_Interpreter;
+with Version;
 
 procedure Main
   with SPARK_Mode => Off
@@ -10,6 +12,13 @@ is
    Res  : Forth_Interpreter.Interpret_Result;
    Last : Natural;
 begin
+   if Ada.Command_Line.Argument_Count > 0
+     and then Ada.Command_Line.Argument (1) = "--version"
+   then
+      Ada.Text_IO.Put_Line (Version.Name & " " & Version.Value);
+      return;
+   end if;
+
    Forth_VM.Initialize (VM);
 
    loop

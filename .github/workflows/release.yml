@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-amd64
+            runner: ubuntu-latest
+            archive: tar.gz
+            ext: ""
+          # - name: linux-aarch64
+          #   runner: ubuntu-24.04-arm
+          #   archive: tar.gz
+          #   ext: ""
+          # - name: macos-amd64
+          #   runner: macos-13
+          #   archive: tar.gz
+          #   ext: ""
+          # - name: macos-aarch64
+          #   runner: macos-latest
+          #   archive: tar.gz
+          #   ext: ""
+          # - name: windows-amd64
+          #   runner: windows-latest
+          #   archive: zip
+          #   ext: ".exe"
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate version.ads
+        run: |
+          cat > src/version.ads <<EOF
+          package Version
+            with SPARK_Mode => Off
+          is
+             Name  : constant String := "ada-forth";
+             Value : constant String := "${{ steps.version.outputs.VERSION }}";
+          end Version;
+          EOF
+
+      - name: Setup Alire toolchain
+        uses: alire-project/setup-alire@v2
+
+      - name: Build project
+        run: gprbuild -P forth_interpreter.gpr -j0
+
+      - name: Create staging directory
+        run: |
+          mkdir -p staging/ada-forth-${{ steps.version.outputs.VERSION }}
+          cp obj/ada-forth${{ matrix.ext }} staging/ada-forth-${{ steps.version.outputs.VERSION }}/ada-forth${{ matrix.ext }}
+          cp README.md staging/ada-forth-${{ steps.version.outputs.VERSION }}/
+
+      - name: Package as tar.gz
+        if: matrix.archive == 'tar.gz'
+        run: |
+          tar czf ada-forth-${{ steps.version.outputs.VERSION }}-${{ matrix.name }}.tar.gz \
+            -C staging ada-forth-${{ steps.version.outputs.VERSION }}
+
+      - name: Package as zip
+        if: matrix.archive == 'zip'
+        run: |
+          cd staging && zip -r ../ada-forth-${{ steps.version.outputs.VERSION }}-${{ matrix.name }}.zip \
+            ada-forth-${{ steps.version.outputs.VERSION }}
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ada-forth-${{ steps.version.outputs.VERSION }}-${{ matrix.name }}
+          path: ada-forth-${{ steps.version.outputs.VERSION }}-${{ matrix.name }}.*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*

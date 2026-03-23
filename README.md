@@ -66,18 +66,37 @@ Requires GNAT and GNATprove (GNAT Community or GNAT Pro).
 
 ```bash
 # Build
-gprbuild -P forth_interpreter.gpr
+gprbuild -P forth_interpreter.gpr -j0
 
 # Run
-./obj/main
+./obj/ada-forth
+
+# Check version
+./obj/ada-forth --version
 
 # Formal verification (alt-ergo only, all VCs)
 gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo -j0
 
 # Integration tests
-gprbuild -P test_integration.gpr
+gprbuild -P test_integration.gpr -j0
 ./obj/test_integration
 ```
+
+## CI/CD
+
+GitHub Actions workflows automate building, testing, and releasing.
+
+- **CI** (`.github/workflows/ci.yml`) — triggers on every push/PR (except sandbox branches). Builds, runs 55 integration tests, runs GNATprove, and uploads proof results as SARIF to the GitHub Security tab.
+- **Release** (`.github/workflows/release.yml`) — triggers on `v*` tag push. Embeds the version into the binary, builds for each platform, packages archives, and creates a GitHub Release.
+
+To cut a release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+See [`doc/release_process.md`](doc/release_process.md) for the full guide.
 
 ## Formal Verification Results
 
@@ -103,9 +122,10 @@ This project was built using [Kiro](https://kiro.dev) Pro+ with its spec-driven 
 |-------|------|---------|-----|
 | Initial interpreter (7 primitives) | ~90 min (15:58–17:28 UTC) | ~41 (453 → 494) | 186 |
 | Extended ops (user-defined words, control flow, variables) | ~4.5 hrs (19:05–23:25 UTC) | ~266 (494 → 760) | 424 |
-| **Total** | **~6 hours** | **~307** | **424** |
+| CI/CD & releases | 2026-03-23 | ~35 (760 → 795) | — |
+| **Total** | | **~342** | **424** |
 
-All on **2026-03-22**. At current Kiro Pro+ pricing (2000 credits = $25 USD), the entire project cost roughly **$3.84** in credits.
+At current Kiro Pro+ pricing (2000 credits = $25 USD), the entire project cost roughly **$4.28** in credits.
 
 The process for each phase: Kiro generated a requirements document, design document, and implementation plan. Then it executed each task — writing Ada/SPARK code, running GNATprove, fixing proof failures, iterating until all VCs discharged. Human role was reviewing documents, approving direction, and occasional guidance on proof strategy. The extended ops took longer because GNATprove proof obligations for the inner interpreter, compilation mode, and control flow patching required more iteration to get alt-ergo to discharge everything.
 
@@ -118,8 +138,14 @@ The process for each phase: Kiro generated a requirements document, design docum
 │   ├── bounded_stacks.ads/adb   # Generic bounded stack (SPARK)
 │   ├── forth_vm.ads/adb         # VM state, types, primitives, inner interpreter (SPARK)
 │   ├── forth_interpreter.ads/adb # Tokenizer, compiler, outer interpreter (SPARK)
-│   ├── main.adb                 # Interactive REPL (non-SPARK)
+│   ├── version.ads              # Version string (overwritten by CI for releases)
+│   ├── main.adb                 # Interactive REPL with --version flag (non-SPARK)
 │   └── test_integration.adb     # Integration test suite (55 tests)
+├── .github/workflows/
+│   ├── ci.yml                   # CI pipeline (build, test, prove, SARIF)
+│   └── release.yml              # Release pipeline (build, package, publish)
+├── doc/
+│   └── release_process.md       # Release guide for maintainers
 └── .kiro/specs/                 # Kiro spec documents (requirements, design, tasks)
 ```
 

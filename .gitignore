@@ -6,8 +6,12 @@ lib/
 *.ali
 *.o
 
+# Emacs
+*~
+
 # GNATprove output
 gnatprove/
 
 # Executable
 main
+ada-forth

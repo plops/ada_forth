@@ -18,6 +18,7 @@ project Forth_Interpreter is
    package Builder is
       for Default_Switches ("Ada") use
         ("-s");  --  Recompile only when sources change
+      for Executable ("main.adb") use "ada-forth";
    end Builder;
 
 end Forth_Interpreter;
