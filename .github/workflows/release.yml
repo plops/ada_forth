@@ -56,10 +56,10 @@ jobs:
           EOF
 
       - name: Setup Alire toolchain
-        uses: alire-project/setup-alire@v2
+        uses: alire-project/setup-alire@v4
 
       - name: Build project
-        run: gprbuild -P forth_interpreter.gpr -j0
+        run: alr exec -- gprbuild -P forth_interpreter.gpr -j0
 
       - name: Create staging directory
         run: |

@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -25,23 +27,23 @@ jobs:
             gnatprove-${{ runner.os }}-
 
       - name: Setup Alire toolchain
-        uses: alire-project/setup-alire@v2
+        uses: alire-project/setup-alire@v4
 
       - name: Build main project
-        run: gprbuild -P forth_interpreter.gpr -j0
+        run: alr exec -- gprbuild -P forth_interpreter.gpr -j0
 
       - name: Build integration tests
-        run: gprbuild -P test_integration.gpr -j0
+        run: alr exec -- gprbuild -P test_integration.gpr -j0
 
       - name: Run integration tests
         run: ./obj/test_integration
 
       - name: Run GNATprove formal verification
         run: |
-          gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo -j0 --output=sarif
+          alr exec -- gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo -j0 --output=sarif
 
       - name: Upload SARIF to GitHub Security tab
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: obj/gnatprove/gnatprove.sarif
