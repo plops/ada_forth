@@ -50,14 +50,8 @@ jobs:
       - name: Generate version.ads
         shell: bash
         run: |
-          cat > src/version.ads <<EOF
-          package Version
-            with SPARK_Mode => Off
-          is
-             Name  : constant String := "ada-forth";
-             Value : constant String := "${{ steps.version.outputs.VERSION }}";
-          end Version;
-          EOF
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          printf 'package Version\n  with SPARK_Mode => Off\nis\n   Name  : constant String := "ada-forth";\n   Value : constant String := "%s";\nend Version;\n' "$VERSION" > src/version.ads
 
       - name: Setup Alire toolchain
         uses: alire-project/setup-alire@v4
@@ -72,17 +66,12 @@ jobs:
 
       - name: Add toolchain to PATH (Windows)
         if: runner.os == 'Windows'
-        shell: pwsh
+        shell: bash
         run: |
-          $toolchainDir = "$env:LOCALAPPDATA\alire\cache\toolchains"
-          if (Test-Path $toolchainDir) {
-            Get-ChildItem -Path $toolchainDir -Directory | ForEach-Object {
-              $binDir = Join-Path $_.FullName "bin"
-              if (Test-Path $binDir) {
-                echo $binDir >> $env:GITHUB_PATH
-              }
-            }
-          }
+          TOOLCHAIN_DIR="$LOCALAPPDATA/alire/cache/toolchains"
+          for dir in "$TOOLCHAIN_DIR"/*/bin; do
+            echo "$dir" >> "$GITHUB_PATH"
+          done
 
       - name: Build project
         run: gprbuild -P forth_interpreter.gpr -j0
