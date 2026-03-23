@@ -28,8 +28,6 @@ jobs:
 
       - name: Setup Alire toolchain
         uses: alire-project/setup-alire@v4
-        with:
-          toolchain: "gnat_native gprbuild gnatprove"
 
       - name: Add toolchain to PATH
         run: |
@@ -37,6 +35,12 @@ jobs:
           for dir in "$TOOLCHAIN_DIR"/*/bin; do
             echo "$dir" >> "$GITHUB_PATH"
           done
+
+      - name: Install GNATprove
+        run: |
+          alr -n get gnatprove
+          GNATPROVE_DIR=$(find . -maxdepth 2 -name "gnatprove_*" -type d | head -1)
+          echo "$PWD/$GNATPROVE_DIR/bin" >> "$GITHUB_PATH"
 
       - name: Build main project
         run: gprbuild -P forth_interpreter.gpr -j0
