@@ -53,10 +53,10 @@ jobs:
 
       - name: Run GNATprove formal verification
         run: |
-          gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo -j0 --output=sarif
+          gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo -j0 --report=all
 
       - name: Upload SARIF to GitHub Security tab
-        if: always()
+        if: always() && hashFiles('obj/gnatprove/gnatprove.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: obj/gnatprove/gnatprove.sarif
