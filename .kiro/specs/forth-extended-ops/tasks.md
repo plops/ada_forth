@@ -240,13 +240,13 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
 - [x] 12. Checkpoint — Phase 3 Complete
   - Ensure all GNATprove VCs pass with zero unproved, all integration tests pass. Ask the user if questions arise.
 
-- [ ] 13. Final verification and backward compatibility
-  - [~] 13.1 Run full GNATprove verification on entire codebase
+- [x] 13. Final verification and backward compatibility
+  - [x] 13.1 Run full GNATprove verification on entire codebase
     - Run: `gnatprove -P forth_interpreter.gpr --level=2 --prover=alt-ergo`
     - Confirm all VCs discharged across all packages (bounded_stacks, forth_vm, forth_interpreter)
     - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
 
-  - [~] 13.2 Run all integration tests and verify backward compatibility
+  - [x] 13.2 Run all integration tests and verify backward compatibility
     - All original test cases pass unchanged
     - All new test cases pass
     - Build and run: `gprbuild -P forth_interpreter.gpr test_integration.adb && ./obj/test_integration`
@@ -260,8 +260,8 @@ Extend the existing SPARK-verified Forth interpreter in three incremental phases
     - **Property 12: Code_Space Monotonic Growth**
     - **Validates: Requirements 6.1, 7.1, 7.2**
 
-- [ ] 14. Final checkpoint
-  - Ensure all GNATprove VCs pass with zero unproved, all integration tests pass, backward compatibility confirmed. Ask the user if questions arise.
+- [x] 14. Final checkpoint
+  - Ensure all GNATprove VCs pass with zero unproved (use -j0 as argument to proover), all integration tests pass, backward compatibility confirmed. Ask the user if questions arise.
 
 ## Notes
 
