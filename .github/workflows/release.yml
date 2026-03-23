@@ -15,22 +15,22 @@ jobs:
             runner: ubuntu-latest
             archive: tar.gz
             ext: ""
-          # - name: linux-aarch64
-          #   runner: ubuntu-24.04-arm
-          #   archive: tar.gz
-          #   ext: ""
-          # - name: macos-amd64
-          #   runner: macos-13
-          #   archive: tar.gz
-          #   ext: ""
-          # - name: macos-aarch64
-          #   runner: macos-latest
-          #   archive: tar.gz
-          #   ext: ""
-          # - name: windows-amd64
-          #   runner: windows-latest
-          #   archive: zip
-          #   ext: ".exe"
+          - name: linux-aarch64
+            runner: ubuntu-24.04-arm
+            archive: tar.gz
+            ext: ""
+          - name: macos-amd64
+            runner: macos-13
+            archive: tar.gz
+            ext: ""
+          - name: macos-aarch64
+            runner: macos-latest
+            archive: tar.gz
+            ext: ""
+          - name: windows-amd64
+            runner: windows-latest
+            archive: zip
+            ext: ".exe"
 
     runs-on: ${{ matrix.runner }}
 
@@ -40,11 +40,13 @@ jobs:
 
       - name: Extract version from tag
         id: version
+        shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Generate version.ads
+        shell: bash
         run: |
           cat > src/version.ads <<EOF
           package Version
@@ -58,17 +60,31 @@ jobs:
       - name: Setup Alire toolchain
         uses: alire-project/setup-alire@v4
 
-      - name: Add toolchain to PATH
+      - name: Add toolchain to PATH (Unix)
+        if: runner.os != 'Windows'
         run: |
           TOOLCHAIN_DIR="$HOME/.local/share/alire/toolchains"
           for dir in "$TOOLCHAIN_DIR"/*/bin; do
             echo "$dir" >> "$GITHUB_PATH"
           done
 
+      - name: Add toolchain to PATH (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $toolchainDir = "$env:USERPROFILE\.local\share\alire\toolchains"
+          Get-ChildItem -Path $toolchainDir -Directory | ForEach-Object {
+            $binDir = Join-Path $_.FullName "bin"
+            if (Test-Path $binDir) {
+              echo $binDir >> $env:GITHUB_PATH
+            }
+          }
+
       - name: Build project
         run: gprbuild -P forth_interpreter.gpr -j0
 
       - name: Create staging directory
+        shell: bash
         run: |
           mkdir -p staging/ada-forth-${{ steps.version.outputs.VERSION }}
           cp obj/ada-forth${{ matrix.ext }} staging/ada-forth-${{ steps.version.outputs.VERSION }}/ada-forth${{ matrix.ext }}
@@ -82,6 +98,7 @@ jobs:
 
       - name: Package as zip
         if: matrix.archive == 'zip'
+        shell: bash
         run: |
           cd staging && zip -r ../ada-forth-${{ steps.version.outputs.VERSION }}-${{ matrix.name }}.zip \
             ada-forth-${{ steps.version.outputs.VERSION }}
