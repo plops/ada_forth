@@ -28,6 +28,8 @@ jobs:
 
       - name: Setup Alire toolchain
         uses: alire-project/setup-alire@v4
+        with:
+          toolchain: "gnat_native gprbuild gnatprove"
 
       - name: Add toolchain to PATH
         run: |
