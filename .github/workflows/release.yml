@@ -91,10 +91,9 @@ jobs:
 
       - name: Package as zip
         if: matrix.archive == 'zip'
-        shell: bash
+        shell: pwsh
         run: |
-          cd staging && zip -r ../ada-forth-${{ steps.version.outputs.VERSION }}-${{ matrix.name }}.zip \
-            ada-forth-${{ steps.version.outputs.VERSION }}
+          Compress-Archive -Path "staging/ada-forth-${{ steps.version.outputs.VERSION }}" -DestinationPath "ada-forth-${{ steps.version.outputs.VERSION }}-${{ matrix.name }}.zip"
 
       - name: Upload archive
         uses: actions/upload-artifact@v4
