@@ -15,14 +15,16 @@ jobs:
             runner: ubuntu-latest
             archive: tar.gz
             ext: ""
-          - name: linux-aarch64
-            runner: ubuntu-24.04-arm
-            archive: tar.gz
-            ext: ""
-          - name: macos-amd64
-            runner: macos-13
-            archive: tar.gz
-            ext: ""
+          # - name: linux-aarch64
+          #   runner: ubuntu-24.04-arm
+          #   archive: tar.gz
+          #   ext: ""
+          #   NOTE: Alire has no aarch64-linux binary yet (404)
+          # - name: macos-amd64
+          #   runner: macos-13
+          #   archive: tar.gz
+          #   ext: ""
+          #   NOTE: macos-13 configuration not supported by setup-alire
           - name: macos-aarch64
             runner: macos-latest
             archive: tar.gz
@@ -72,11 +74,13 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $toolchainDir = "$env:USERPROFILE\.local\share\alire\toolchains"
-          Get-ChildItem -Path $toolchainDir -Directory | ForEach-Object {
-            $binDir = Join-Path $_.FullName "bin"
-            if (Test-Path $binDir) {
-              echo $binDir >> $env:GITHUB_PATH
+          $toolchainDir = "$env:LOCALAPPDATA\alire\cache\toolchains"
+          if (Test-Path $toolchainDir) {
+            Get-ChildItem -Path $toolchainDir -Directory | ForEach-Object {
+              $binDir = Join-Path $_.FullName "bin"
+              if (Test-Path $binDir) {
+                echo $binDir >> $env:GITHUB_PATH
+              }
             }
           }
 
