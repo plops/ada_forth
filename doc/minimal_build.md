@@ -39,23 +39,30 @@ The two build flavors are separated by **build tooling and entrypoints**, not by
 - The **standard build** is built via `gprbuild -P forth_interpreter.gpr` and uses **`src/main.adb`** as the main unit.
 - The **minimal build** is built via `./build_minimal.sh` and uses **`src/mini_main.adb`** plus **`src/mini_io.*`**, and (per the script) may patch I/O usage inside the VM.
 
-### What prevents the standard build from being “poisoned” by minimal-build artifacts?
+### Did the minimal build patch (and therefore poison) repo files?
 
-1. **Different build pipelines**
-   - Standard build uses GNAT project files and compiles into the configured object directory (`obj/`).
-   - Minimal build is script-driven and typically compiles in an isolated temporary directory (as described earlier in this document), producing its own binary.
+From the files currently in the repo snapshot you shared **there is no evidence that anything was permanently patched**:
 
-2. **Different mains mean unused units are not linked**
-   - `forth_interpreter.gpr` only lists `main.adb` as its `Main`.
-   - Even though `mini_main.adb` / `mini_io.*` live in `src/`, they are not pulled into the standard executable unless something `with`s them from the `main` dependency tree.
+- `src/forth_vm.adb` still `with Ada.Text_IO;` and `Execute_Dot` still calls `Ada.Text_IO.Put`, which indicates the VM source in `src/` was **not** rewritten to use `Mini_IO`.
+- The standard build (`gprbuild -P forth_interpreter.gpr -j0`) reports **“up to date”**, which is consistent with `src/` not being modified by the minimal build.
 
-3. **The only real “poisoning” risk is source patching**
-   - If `build_minimal.sh` patches a *tracked* source file in-place (e.g., editing `src/forth_vm.adb` to swap `Ada.Text_IO` for `Mini_IO`) and does not restore it, that *would* affect subsequent standard builds.
-   - The minimal build should therefore patch **only copies** of sources in a temporary build directory (or the patch must be reverted afterwards). This is the primary guardrail to verify in the script.
+However, based on the minimal build output alone, we **cannot prove** what `build_minimal.sh` did, because:
+- it could patch **copies** of files in a temp directory (safe), or
+- it could patch tracked files and then revert them (also safe), or
+- it could patch tracked files and leave them modified (poisoning risk).
 
-4. **Object file leftovers are normally harmless (but can confuse incremental builds)**
-   - Old `.o`/`.ali` in `obj/` generally won’t affect correctness if the project file and dependencies are consistent, but they can lead to surprising incremental behavior if build flags change.
-   - A clean rebuild (`rm -rf obj`) is the simplest “reset” if you suspect mixed artifacts.
+The warning spam (`pragma No_Run_Time is ignored`) is coming from compilation configuration (`gnat.adc` / `mini_main.adb`), not from patching.
+
+#### How to verify locally (recommended)
+After running `./build_minimal.sh`, check for a dirty working tree:
+
+```bash
+git status --porcelain
+```
+
+If that prints nothing, the minimal build did **not** leave tracked files modified.
+
+If you want, add `build_minimal.sh` to the chat and I can review it to confirm it only patches temporary copies (and if it doesn’t, I can refactor it so it cannot poison `src/`).
 
 ### Recommended practice
 
