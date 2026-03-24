@@ -1,35 +1,57 @@
-# Minimal Build of Ada-Forth
+# Minimal build vs standard build (comparison)
 
-This document describes how to create a minimal Linux binary of the Forth interpreter, optimized for size with a target of < 30KB.
+This project supports two build “flavors” that share the same VM/interpreter logic but differ in runtime dependencies and I/O:
 
-## Principles of the Minimal Build
+## Standard build (default)
 
-1. **Bypass the Ada Runtime (GNAT Runtime)**: By default, Ada programs link with a significantly large runtime (GNAT) which handles multitasking, exception handling, and standard I/O. For a minimal binary, we bypass this by providing a direct C-style entry point and using low-level syscalls.
-2. **Minimal I/O Layer**: The `Mini_IO` package in `src/` implements basic `Put`, `Get_Line`, and `Put_Int` operations using only the Linux `write` and `read` system calls.
-3. **Aggressive Section Garbage Collection**: Compiling with `-ffunction-sections` and `-fdata-sections` allows the linker to perform "garbage collection" on unused code sections via the `--gc-sections` flag.
-4. **Symbol Stripping**: All symbol tables and debugging metadata are removed in the final build step.
+**Goal:** developer-friendly REPL and easy portability within GNAT’s normal runtime model.
 
-## Build Process
+- **Entrypoint:** `src/main.adb`
+- **I/O:** `Ada.Text_IO` (line prompting, `Get_Line`, formatted output)
+- **Runtime model:** normal GNAT runtime (exceptions enabled in the host program; standard startup code)
+- **Build tool:** `gprbuild -P forth_interpreter.gpr`
+- **Output binary:** `ada-forth` (configured in `forth_interpreter.gpr`)
+- **Tradeoffs:**
+  - Larger binary due to full Ada runtime + Text_IO.
+  - More convenient during development (robust console I/O, better diagnostics).
 
-The `build_minimal.sh` script automates the following steps:
+## Minimal build
 
-1. **Sources Preparation**: Core files from `src/` are copied to a temporary build directory.
-2. **Source Patching**: `forth_vm.adb` is patched on the fly to use `Mini_IO` instead of the standard `Ada.Text_IO`.
-3. **C Entry Point**: A small `entry.c` file is created to initialize the system and call the Ada logic (`_ada_mini_main`).
-4. **Direct Object Compilation**: All Ada units are compiled directly to object files (`.o`) with aggressive size optimizations (`-Os`).
-5. **Direct Binary Linking**: `gcc` is used as the linker instead of `gnatlink` to avoid pulling in the standard GNAT startup code.
+**Goal:** produce a very small Linux binary (target **< 30KB**) by bypassing most of the Ada runtime and using direct syscalls.
 
-## Prerequisites
+- **Entrypoint:** `src/mini_main.adb`
+- **I/O:** `src/mini_io.*` using Linux `read(2)`/`write(2)` via C imports
+- **Runtime model:** configured to minimize/avoid runtime features:
+  - `pragma No_Run_Time`
+  - restrictions such as no exception propagation / secondary stack (see `gnat.adc` and `src/mini_main.adb`)
+- **Build tool:** `./build_minimal.sh` (scripted build, not a plain `.gpr` build)
+- **Implementation detail:** the script patches `forth_vm.adb` usage of `Ada.Text_IO` so the VM’s `.` word output uses `Mini_IO` instead.
+- **Output binary:** `forth-mini` (as described in this doc)
+- **Tradeoffs:**
+  - Significantly smaller binary; fewer dependencies.
+  - Less ergonomic I/O (no full Text_IO facilities).
+  - More platform-specific (Linux syscalls / C ABI expectations).
 
-- GNAT (GCC) toolchain.
-- Standard C library (libc.a/libc.so) for syscall stubs.
+## What stays the same between builds
+
+- The **Forth language behavior** (word set, dictionary, compilation/execution model) is intended to remain identical.
+- The **VM + interpreter architecture** is shared; only the outermost I/O and startup/runtime wiring differ.
+
+## Quick “which should I use?”
+- Use the **standard build** for day-to-day development, debugging, and CI verification.
+- Use the **minimal build** when you care about **binary size** and are targeting **Linux** with minimal runtime features.
 
 ## Usage
 
-Run the build script from the root directory:
+Minimal build:
 
 ```bash
 ./build_minimal.sh
 ```
 
-The resulting `forth-mini` binary will be approximately **19-25KB** in size.
+Standard build:
+
+```bash
+gprbuild -P forth_interpreter.gpr -j0
+./obj/ada-forth
+```
