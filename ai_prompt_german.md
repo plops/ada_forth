@@ -37,6 +37,8 @@ Erkläre die folgenden Begriffe im Kontext dieses Projekts:
 - GNATprove
 - Why3
 
+Falls weitere Begriffe relevant sind, erkläre diese ebenfalls.
+
 ### 3. Projekt-Design-Analyse
 Diskutiere die folgenden Design-Entscheidungen:
 - Warum wurde Ada mit SPARK für einen Forth-Interpreter gewählt?
